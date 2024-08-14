@@ -97,7 +97,7 @@ const Feed = () => {
     ip: "",
     city: "",
     startDate: "",
-    endDate: ""
+    endDate: "",
   });
 
   const handleApply = () => {
@@ -118,7 +118,7 @@ const Feed = () => {
       ip: "",
       city: "",
       startDate: "",
-      endDate: ""
+      endDate: "",
     });
   };
 
@@ -193,7 +193,9 @@ const Feed = () => {
                   gridRow: 2, // Place on the second row
                 }}
               >
-                <Button variant="contained" onClick={handleApply}>Apply</Button>
+                <Button variant="contained" onClick={handleApply}>
+                  Apply
+                </Button>
                 <Button variant="contained" color="error" onClick={handleClear}>
                   Clear
                 </Button>

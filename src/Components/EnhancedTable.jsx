@@ -21,8 +21,10 @@ import Switch from "@mui/material/Switch";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { visuallyHidden } from "@mui/utils";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
 import { db } from "../constants/constants"; // Import the Firebase configuration
+import Button from "@mui/material/Button";
+import Stack from "@mui/material/Stack";
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -53,17 +55,50 @@ function stableSort(array, comparator) {
 }
 
 const headCells = [
-  { id: "visitorId", numeric: false, disablePadding: true, label: "Visitor ID" },
-  { id: "ipAddress", numeric: false, disablePadding: false, label: "Ip Address" },
-  { id: "cityCountry", numeric: false, disablePadding: false, label: "City / Country" },
+  {
+    id: "Index",
+    numeric: false,
+    disablePadding: true,
+    label: "Index",
+  },
+  {
+    id: "visitorId",
+    numeric: false,
+    disablePadding: true,
+    label: "Visitor ID",
+  },
+  {
+    id: "ipAddress",
+    numeric: false,
+    disablePadding: false,
+    label: "Ip Address",
+  },
+  {
+    id: "cityCountry",
+    numeric: false,
+    disablePadding: false,
+    label: "City / Country",
+  },
   { id: "browser", numeric: false, disablePadding: false, label: "Browser" },
   { id: "devices", numeric: false, disablePadding: false, label: "Devices" },
-  { id: "lastVisit", numeric: false, disablePadding: false, label: "Last Visit" },
+  {
+    id: "lastVisit",
+    numeric: false,
+    disablePadding: false,
+    label: "Last Visit",
+  },
   { id: "action", numeric: false, disablePadding: false, label: "Action" },
 ];
 
 function EnhancedTableHead(props) {
-  const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } = props;
+  const {
+    onSelectAllClick,
+    order,
+    orderBy,
+    numSelected,
+    rowCount,
+    onRequestSort,
+  } = props;
   const createSortHandler = (property) => (event) => {
     onRequestSort(event, property);
   };
@@ -115,9 +150,7 @@ EnhancedTableHead.propTypes = {
   onRequestSort: PropTypes.func.isRequired,
 };
 
-function EnhancedTableToolbar(props) {
-  const { numSelected } = props;
-
+function EnhancedTableToolbar({ numSelected, DeleteSelected }) {
   return (
     <Toolbar
       sx={{
@@ -125,22 +158,35 @@ function EnhancedTableToolbar(props) {
         pr: { xs: 1, sm: 1 },
         ...(numSelected > 0 && {
           bgcolor: (theme) =>
-            alpha(theme.palette.primary.main, theme.palette.action.activatedOpacity),
+            alpha(
+              theme.palette.primary.main,
+              theme.palette.action.activatedOpacity
+            ),
         }),
       }}
     >
       {numSelected > 0 ? (
-        <Typography sx={{ flex: "1 1 100%" }} color="inherit" variant="subtitle1" component="div">
+        <Typography
+          sx={{ flex: "1 1 100%" }}
+          color="inherit"
+          variant="subtitle1"
+          component="div"
+        >
           {numSelected} selected
         </Typography>
       ) : (
-        <Typography sx={{ flex: "1 1 100%" }} variant="h6" id="tableTitle" component="div">
+        <Typography
+          sx={{ flex: "1 1 100%" }}
+          variant="h6"
+          id="tableTitle"
+          component="div"
+        >
           Manage Users
         </Typography>
       )}
       {numSelected > 0 ? (
         <Tooltip title="Delete">
-          <IconButton>
+          <IconButton onClick={DeleteSelected}>
             <DeleteIcon />
           </IconButton>
         </Tooltip>
@@ -157,6 +203,7 @@ function EnhancedTableToolbar(props) {
 
 EnhancedTableToolbar.propTypes = {
   numSelected: PropTypes.number.isRequired,
+  DeleteSelected: PropTypes.func.isRequired,
 };
 
 export default function EnhancedTable({ filters }) {
@@ -168,16 +215,16 @@ export default function EnhancedTable({ filters }) {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [rows, setRows] = useState([]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const querySnapshot = await getDocs(collection(db, "Users")); // Adjust the collection name
-      const data = querySnapshot.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id
-      }));
-      setRows(data);
-    };
+  const fetchData = async () => {
+    const querySnapshot = await getDocs(collection(db, "Users")); // Adjust the collection name
+    const data = querySnapshot.docs.map((doc) => ({
+      ...doc.data(),
+      id: doc.id,
+    }));
+    setRows(data);
+  };
 
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -189,19 +236,19 @@ export default function EnhancedTable({ filters }) {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelected = rows.map((n) => n.visitorId);
+      const newSelected = rows.map((n, index) => ({ id: n.id, index }));
       setSelected(newSelected);
       return;
     }
     setSelected([]);
   };
 
-  const handleClick = (event, visitorId) => {
-    const selectedIndex = selected.indexOf(visitorId);
+  const handleClick = (event, id, index) => {
+    const selectedIndex = selected.findIndex((item) => item.id === id);
     let newSelected = [];
 
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, visitorId);
+      newSelected = newSelected.concat(selected, { id, index });
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
     } else if (selectedIndex === selected.length - 1) {
@@ -220,6 +267,18 @@ export default function EnhancedTable({ filters }) {
     setPage(newPage);
   };
 
+  const DeleteSelected = async () => {
+    const batch = writeBatch(db);
+    selected.forEach(({ id }) => {
+      const docRef = doc(db, "Users", id);
+      batch.delete(docRef);
+    });
+
+    await batch.commit();
+    setSelected([]);
+    await fetchData();
+  };
+
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
@@ -229,21 +288,29 @@ export default function EnhancedTable({ filters }) {
     setDense(event.target.checked);
   };
 
-  const isSelected = (visitorId) => selected.indexOf(visitorId) !== -1;
+  const isSelected = (id) => selected.some((item) => item.id === id);
 
   const filterRows = (rows) => {
-    return rows.filter(row => {
-      const matchesIp = filters.ip === "" || row.location.ip.includes(filters.ip);
-      const matchesCity = filters.city === "" || row.location.city.toLowerCase().includes(filters.city.toLowerCase());
-      const matchesStartDate = filters.startDate === "" || new Date(row.created_at * 1000) >= new Date(filters.startDate);
-      const matchesEndDate = filters.endDate === "" || new Date(row.created_at * 1000) <= new Date(filters.endDate);
+    return rows.filter((row) => {
+      const matchesIp =
+        filters.ip === "" || row.location.ip.includes(filters.ip);
+      const matchesCity =
+        filters.city === "" ||
+        row.location.city.toLowerCase().includes(filters.city.toLowerCase());
+      const matchesStartDate =
+        filters.startDate === "" ||
+        new Date(row.created_at * 1000) >= new Date(filters.startDate);
+      const matchesEndDate =
+        filters.endDate === "" ||
+        new Date(row.created_at * 1000) <= new Date(filters.endDate);
       return matchesIp && matchesCity && matchesStartDate && matchesEndDate;
     });
   };
 
   const filteredRows = filterRows(rows);
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - filteredRows.length) : 0;
+  const emptyRows =
+    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - filteredRows.length) : 0;
 
   const visibleRows = useMemo(
     () =>
@@ -257,9 +324,16 @@ export default function EnhancedTable({ filters }) {
   return (
     <Box sx={{ width: "100%" }}>
       <Paper sx={{ width: "100%", mb: 2 }}>
-        <EnhancedTableToolbar numSelected={selected.length} />
+        <EnhancedTableToolbar
+          numSelected={selected.length}
+          DeleteSelected={DeleteSelected}
+        />
         <TableContainer>
-          <Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle" size={dense ? "small" : "medium"}>
+          <Table
+            sx={{ minWidth: 750 }}
+            aria-labelledby="tableTitle"
+            size={dense ? "small" : "medium"}
+          >
             <EnhancedTableHead
               numSelected={selected.length}
               order={order}
@@ -270,17 +344,17 @@ export default function EnhancedTable({ filters }) {
             />
             <TableBody>
               {visibleRows.map((row, index) => {
-                const isItemSelected = isSelected(row.visitorId);
+                const isItemSelected = isSelected(row.id);
                 const labelId = `enhanced-table-checkbox-${index}`;
 
                 return (
                   <TableRow
                     hover
-                    onClick={(event) => handleClick(event, row.visitorId)}
+                    onClick={(event) => handleClick(event, row.id, index)}
                     role="checkbox"
                     aria-checked={isItemSelected}
                     tabIndex={-1}
-                    key={row.id} // Use the Firestore document ID as the key
+                    key={row.id}
                     selected={isItemSelected}
                     sx={{ cursor: "pointer" }}
                   >
@@ -291,15 +365,27 @@ export default function EnhancedTable({ filters }) {
                         inputProps={{ "aria-labelledby": labelId }}
                       />
                     </TableCell>
-                    <TableCell component="th" id={labelId} scope="row" padding="none">
-                      {row.visitorId}
+                    <TableCell
+                      component="th"
+                      id={labelId}
+                      scope="row"
+                      padding="none"
+                    >
+                      {index + 1}
                     </TableCell>
+                    <TableCell align="left">{row.visitorId}</TableCell>
                     <TableCell align="left">{row.location.ip}</TableCell>
                     <TableCell align="left">{`${row.location.city}, ${row.location.country}`}</TableCell>
                     <TableCell align="left">{row.browser}</TableCell>
                     <TableCell align="left">{`Audio: ${row.userComponents.devicesInfo.hasAudio}, Video: ${row.userComponents.devicesInfo.hasVideo}`}</TableCell>
-                    <TableCell align="left">{new Date(row.created_at * 1000).toLocaleString()}</TableCell>
-                    <TableCell align="left">{"Actions Here"}</TableCell>
+                    <TableCell align="left">
+                      {new Date(row.created_at * 1000).toLocaleString()}
+                    </TableCell>
+                    <TableCell align="left">
+                      <Stack direction="row" spacing={2}>
+                        <Button variant="contained">Details</Button>
+                      </Stack>
+                    </TableCell>
                   </TableRow>
                 );
               })}
