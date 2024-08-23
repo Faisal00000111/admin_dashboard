@@ -15,7 +15,6 @@ import {
   IconButton,
   TextField,
 } from "@mui/material";
-
 import React, { useState } from "react";
 import EnhancedTable from "./EnhancedTable";
 
@@ -89,36 +88,28 @@ TablePaginationActions.propTypes = {
 };
 
 const Feed = () => {
+  const theme = useTheme();
   const [ipSearch, setIpSearch] = useState("");
-  const [citySearch, setCitySearch] = useState("");
-  const [startDateSearch, setStartDateSearch] = useState("");
-  const [endDateSearch, setEndDateSearch] = useState("");
+  const [VistorId, setVistorId] = useState("");
+
   const [filters, setFilters] = useState({
     ip: "",
-    city: "",
-    startDate: "",
-    endDate: ""
+    VistorId: "",
   });
 
   const handleApply = () => {
     setFilters({
       ip: ipSearch,
-      city: citySearch,
-      startDate: startDateSearch,
-      endDate: endDateSearch,
+      VistorId: VistorId,
     });
   };
 
   const handleClear = () => {
     setIpSearch("");
-    setCitySearch("");
-    setStartDateSearch("");
-    setEndDateSearch("");
+    setVistorId("");
     setFilters({
       ip: "",
-      city: "",
-      startDate: "",
-      endDate: ""
+      VistorId: "",
     });
   };
 
@@ -127,7 +118,8 @@ const Feed = () => {
       flex={4}
       p={8}
       sx={{
-        backgroundColor: "skyblue",
+        backgroundColor: theme.palette.background.default,
+        color: theme.palette.text.primary,
       }}
     >
       <Box mgbot>
@@ -155,45 +147,26 @@ const Feed = () => {
                 sx={{ width: "100%", maxWidth: "250px" }}
                 id="city"
                 freeSolo
-                value={citySearch}
-                onInputChange={(e, value) => setCitySearch(value)}
-                options={["Jeddah"]}
+                value={VistorId}
+                onInputChange={(e, value) => setVistorId(value)}
+                options={[]}
                 renderInput={(params) => (
-                  <TextField {...params} label="Search City" />
+                  <TextField {...params} label="Search visitor Id" />
                 )}
               />
-              <Autocomplete
-                sx={{ width: "100%", maxWidth: "250px" }}
-                id="sDate"
-                freeSolo
-                value={startDateSearch}
-                onInputChange={(e, value) => setStartDateSearch(value)}
-                options={["27/03/2024"]}
-                renderInput={(params) => (
-                  <TextField {...params} label="Search Start Date" />
-                )}
-              />
-              <Autocomplete
-                sx={{ width: "100%", maxWidth: "250px" }}
-                id="eDate"
-                freeSolo
-                value={endDateSearch}
-                onInputChange={(e, value) => setEndDateSearch(value)}
-                options={["31/12/2024"]}
-                renderInput={(params) => (
-                  <TextField {...params} label="Search End Date" />
-                )}
-              />
+
               <Box
                 sx={{
-                  gridColumn: "1 / -1", // Span from first to last column
+                  gridColumn: "1 / -1",
                   display: "flex",
-                  justifyContent: "center", // Center buttons in this box
-                  gap: 2, // If you want some space between the buttons
-                  gridRow: 2, // Place on the second row
+                  justifyContent: "center",
+                  gap: 2,
+                  gridRow: 2,
                 }}
               >
-                <Button variant="contained" onClick={handleApply}>Apply</Button>
+                <Button variant="contained" onClick={handleApply}>
+                  Apply
+                </Button>
                 <Button variant="contained" color="error" onClick={handleClear}>
                   Clear
                 </Button>
