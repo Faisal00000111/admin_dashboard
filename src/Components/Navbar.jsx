@@ -13,6 +13,8 @@ import {
 import Mail from "@mui/icons-material/Mail";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import React, { useState } from "react";
+import { getAuth, signOut } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 
 const StyledToolbar = styled(Toolbar)({
   display: "flex",
@@ -39,6 +41,14 @@ const UserBox = styled(Box)(({ theme }) => ({
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const auth = getAuth();
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/login");
+  };
+
   return (
     <AppBar position="sticky">
       <StyledToolbar>
@@ -55,10 +65,10 @@ const Navbar = () => {
           </Badge>
           <Avatar
             sx={{ width: 30, height: 30 }}
-            onClick={(e) => (setOpen(true))}
+            onClick={() => setOpen(true)}
           />
         </Icons>
-        <UserBox onClick={(e) => (setOpen(true))}>
+        <UserBox onClick={() => setOpen(true)}>
           <Avatar sx={{ width: 30, height: 30 }} />
           <Typography variant="span">Faisal</Typography>
         </UserBox>
@@ -67,7 +77,7 @@ const Navbar = () => {
         id="demo-positioned-menu"
         aria-labelledby="demo-positioned-button"
         open={open}
-        onClose={e=> setOpen(false)}
+        onClose={() => setOpen(false)}
         anchorOrigin={{
           vertical: "top",
           horizontal: "right",
@@ -79,7 +89,7 @@ const Navbar = () => {
       >
         <MenuItem>Profile</MenuItem>
         <MenuItem>My account</MenuItem>
-        <MenuItem>Logout</MenuItem>
+        <MenuItem onClick={handleLogout}>Logout</MenuItem>{" "}
       </Menu>
     </AppBar>
   );
