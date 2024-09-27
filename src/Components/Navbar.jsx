@@ -10,8 +10,6 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
-import Mail from "@mui/icons-material/Mail";
-import NotificationsIcon from "@mui/icons-material/Notifications";
 import React, { useState } from "react";
 import { getAuth, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
@@ -57,12 +55,6 @@ const Navbar = () => {
         </Typography>
         <SecurityOutlinedIcon sx={{ display: { xs: "block", sm: "none" } }} />
         <Icons>
-          <Badge badgeContent={4} color="error">
-            <Mail />
-          </Badge>
-          <Badge badgeContent={2} color="error">
-            <NotificationsIcon />
-          </Badge>
           <Avatar
             sx={{ width: 30, height: 30 }}
             onClick={() => setOpen(true)}

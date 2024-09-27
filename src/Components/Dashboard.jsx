@@ -39,25 +39,27 @@ const Dashboard = () => {
         usersData.forEach((user) => {
           totalUsers += 1;
 
-          if (user.VpnInfo?.security.vpn) {
+          // Safely check for vpn status
+          if (user?.VpnInfo?.security?.vpn) {
             vpnUsers += 1;
           } else {
             noVpnUsers += 1;
           }
 
-          if (user.Incognito.Incognito?.isPrivate) {
+          // Safely check for incognito mode
+          if (user?.Incognito?.Incognito?.isPrivate) {
             incognitoUsers += 1;
           } else {
             regularUsers += 1;
           }
 
-          const browserName = user.browser || "Unknown";
+          const browserName = user?.browser || "Unknown";
           browsers[browserName] = (browsers[browserName] || 0) + 1;
 
-          const country = user.VpnInfo?.location?.country || "Unknown";
+          const country = user?.VpnInfo?.location?.country || "Unknown";
           countries[country] = (countries[country] || 0) + 1;
 
-          const city = user.VpnInfo?.location?.city || "Unknown";
+          const city = user?.VpnInfo?.location?.city || "Unknown";
           locations[city] = (locations[city] || 0) + 1;
         });
 
@@ -83,7 +85,7 @@ const Dashboard = () => {
         setLoading(false);
       }
     };
-
+    
     fetchData();
   }, []);
 

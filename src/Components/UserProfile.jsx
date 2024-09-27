@@ -149,6 +149,10 @@ const UserProfile = () => {
                   label="Organization"
                   value={userDetails.location.org}
                 />
+                <InfoField
+                  label="Confidence Score"
+                  value={userDetails.confidence?.score.toFixed(2) || "N/A"}
+                />
               </Grid>
             </CardContent>
           </Card>
@@ -260,32 +264,7 @@ const UserProfile = () => {
             </Card>
           </Box>
 
-          <Box mt={3}>
-            <Card
-              variant="outlined"
-              sx={{ bgcolor: theme.palette.background.paper }}
-            >
-              <CardContent>
-                <SectionTitle variant="h5">Other Information</SectionTitle>
-                <Grid container spacing={2}>
-                  <InfoField
-                    label="Confidence Score"
-                    value={userDetails.confidence?.score.toFixed(2) || "N/A"}
-                  />
-                  <InfoField
-                    label="Comment"
-                    value={userDetails.confidence?.comment || "N/A"}
-                  />
-                  <InfoField
-                    label="Created At"
-                    value={new Date(
-                      userDetails.created_at * 1000
-                    ).toLocaleString()}
-                  />
-                </Grid>
-              </CardContent>
-            </Card>
-          </Box>
+        
         </Box>
       </Paper>
     </Box>
